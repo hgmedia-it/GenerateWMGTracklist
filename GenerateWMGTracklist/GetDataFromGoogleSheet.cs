@@ -7,8 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using System.Text;
 using System.Threading;
 using static Google.Apis.Sheets.v4.SpreadsheetsResource.ValuesResource.GetRequest;
 
@@ -81,59 +79,89 @@ namespace GenerateWMGTracklist
                         }
                         if (j == 2)
                         {
-                            song.Code = values[i][j].ToString();
+                            song.TrackId = values[i][j].ToString();
                         }
                         if (j == 3)
                         {
-                            song.TrackArtist = values[i][j].ToString();
+                            song.AlbumId = values[i][j].ToString();
                         }
                         if (j == 4)
                         {
-                            song.Genres = values[i][j].ToString();
+                            song.Code = values[i][j].ToString();
                         }
                         if (j == 5)
                         {
-                            song.Region = values[i][j].ToString();
+                            song.TrackArtist = values[i][j].ToString();
                         }
                         if (j == 6)
                         {
-                            song.YoutubeUrl = values[i][j].ToString();
+                            song.Genres = values[i][j].ToString();
                         }
                         if (j == 7)
                         {
-                            song.ReleaseYear = values[i][j].ToString();
+                            song.Region = values[i][j].ToString();
                         }
                         if (j == 8)
                         {
-                            song.YoutubeViewCountFirst = long.Parse(values[i][j].ToString());
+                            song.ReleaseYear = values[i][j].ToString();
                         }
-                        if (values[i].Count > 9)
+                        if (j == 9)
+                        {
+                            song.SpotifyStreamCountFirst = long.Parse(values[i][j].ToString());
+                        }
+                        if (values[i].Count > 10)
                         {
                             if (j == values[i].Count - 1)
                             {
-                                song.YoutubeViewCountSecond = long.Parse(values[i][values[i].Count - 1].ToString());
+                                song.SpotifyStreamCountSecond = long.Parse(values[i][values[i].Count - 1].ToString());
                             }
                             if(j== values[i].Count - 2)
                             {
-                                song.YoutubeViewCountFirst = long.Parse(values[i][values[i].Count - 2].ToString());
+                                song.SpotifyStreamCountFirst = long.Parse(values[i][values[i].Count - 2].ToString());
                                 
                             }
                         }
                     }
                     songs.Add(song);
                 }
+                string[] text = File.ReadAllLines("ExceptionSongs.txt");
+                if(text.Length > 0)
+                {
+                    var listExceptionSongs = new List<string>();
+                    foreach (var item in text)
+                    {
+                        if (!string.IsNullOrEmpty(item))
+                        {
+                            listExceptionSongs.Add(item);
+                        }
+                    }
+                    var newSongs = new List<Song>();
+                    newSongs.AddRange(songs);
+                    foreach (var item in newSongs)
+                    {
+                        foreach (var i in listExceptionSongs)
+                        {
+                            if (i.ToLower().Equals(item.Code.ToLower()))
+                            {
+                                songs.Remove(item);
+                            }
+                        }
+                    }
+                }
+                var list = songs.GroupBy(x => x.Code).Select(g => g.First()).ToList();
                 var lines = new List<string>();
-                    foreach (var song in songs)
+                    foreach (var song in list)
                     {
                         lines.Add(song.TrackName + "\t"
+                            + song.TrackId + "\t"
+                            + song.AlbumId + "\t"
                             + song.Code + "\t"
                             + song.TrackArtist + "\t"
                             + song.Genres + "\t"
                             + song.Region + "\t"
-                            + song.YoutubeUrl+ "\t"
                             + song.ReleaseYear + "\t"
-                            +song.YoutubeViewCountFirst + "\t"
-                            + song.YoutubeViewCountSecond);
+                            +song.SpotifyStreamCountFirst + "\t"
+                            + song.SpotifyStreamCountSecond);
                     }
                 if (File.Exists(fileNameResult))
                 {
@@ -159,14 +187,15 @@ namespace GenerateWMGTracklist
                     songs.Add(new Song
                     {
                         TrackName = parts[0],
-                        Code = parts[1],
-                        TrackArtist = parts[2],
-                        Genres = parts[3],
-                        Region = parts[4],
-                        YoutubeUrl = parts[5],
-                        ReleaseYear = parts[6],
-                        YoutubeViewCountFirst = long.Parse(parts[7]),
-                        YoutubeViewCountSecond = long.Parse(parts[8]),
+                        TrackId = parts[1],
+                        AlbumId = parts[2],
+                        Code = parts[3],
+                        TrackArtist = parts[4],
+                        Genres = parts[5],
+                        Region = parts[6],
+                        ReleaseYear = parts[7],
+                        SpotifyStreamCountFirst = long.Parse(parts[8]),
+                        SpotifyStreamCountSecond = long.Parse(parts[9]),
                     });
                 }
                 return songs;

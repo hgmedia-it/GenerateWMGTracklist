@@ -68,10 +68,10 @@ namespace GenerateWMGTracklist
             {
                 listSongs.ForEach(song =>
                 {
-                    if (song.YoutubeViewCountSecond == 0)
+                    if (song.SpotifyStreamCountSecond == 0)
                     {
-                        song.YoutubeViewCountSecond = song.YoutubeViewCountFirst;
-                        song.YoutubeViewCountFirst = 0;
+                        song.SpotifyStreamCountSecond = song.SpotifyStreamCountFirst;
+                        song.SpotifyStreamCountFirst = 0;
                     }
                 }
                 );
@@ -90,7 +90,7 @@ namespace GenerateWMGTracklist
                 {
                     foreach(var song in listSongs)
                     {
-                        if(song.YoutubeViewCountSecond - song.YoutubeViewCountFirst == song.YoutubeViewCountSecond)
+                        if(song.SpotifyStreamCountSecond - song.SpotifyStreamCountFirst == song.SpotifyStreamCountSecond)
                         {
                             double point = 0;
                             rate.ViewCountLastRate = rate.ViewCountLastRate + (rate.DiffrenceRate / 2);
@@ -163,19 +163,19 @@ namespace GenerateWMGTracklist
             {
                 double point = 0;
                 //view
-                if (song.YoutubeViewCountSecond >= viewTop1)
+                if (song.SpotifyStreamCountSecond >= viewTop1)
                 {
                     point += 0.4 * (rate.ViewCountLastRate);
                 }
-                else if (song.YoutubeViewCountSecond >= viewTop2 && song.YoutubeViewCountSecond < viewTop1)
+                else if (song.SpotifyStreamCountSecond >= viewTop2 && song.SpotifyStreamCountSecond < viewTop1)
                 {
                     point += 0.3 * (rate.ViewCountLastRate);
                 }
-                else if (song.YoutubeViewCountSecond >= viewTop3 && song.YoutubeViewCountSecond < viewTop2)
+                else if (song.SpotifyStreamCountSecond >= viewTop3 && song.SpotifyStreamCountSecond < viewTop2)
                 {
                     point += 0.15 * (rate.ViewCountLastRate);
                 }
-                else if (song.YoutubeViewCountSecond >= viewTop4 && song.YoutubeViewCountSecond < viewTop3)
+                else if (song.SpotifyStreamCountSecond >= viewTop4 && song.SpotifyStreamCountSecond < viewTop3)
                 {
                     point += 0.1 * (rate.ViewCountLastRate);
                 }
@@ -247,7 +247,7 @@ namespace GenerateWMGTracklist
             try
             {
                 double point = 0;
-                long count = song.YoutubeViewCountSecond - song.YoutubeViewCountFirst;
+                long count = song.SpotifyStreamCountSecond - song.SpotifyStreamCountFirst;
                 if(count >= 1000000)
                 {
                     point += rateTop1 * (rate.DiffrenceRate);
