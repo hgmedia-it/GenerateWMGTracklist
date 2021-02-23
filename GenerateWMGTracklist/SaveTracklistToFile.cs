@@ -14,33 +14,64 @@ namespace GenerateWMGTracklist
             try
             {
                 FFmpeg.SetExecutablesPath(currentDir);
-                string route = "http://1.53.252.34:9001/film_video_processing/List?length=100000";
+                string route2 = "http://118.69.82.99:9001/film_video_processing/List?length=1000000";
+                string route = "http://1.53.252.34:9001/film_video_processing/List?length=1000000";
                 List<SongInfo> webSongInfos = new List<SongInfo>();
                 using (var client = new System.Net.Http.HttpClient())
                 {
-                    var response = client.GetAsync(route).GetAwaiter().GetResult();
-                    if (response.IsSuccessStatusCode)
+                    try
                     {
-                        var jsonResponse = response.Content.ReadAsStringAsync().Result;
-                        webSongInfos = Newtonsoft.Json.JsonConvert.DeserializeObject<WebResponse>(jsonResponse).Data;
-                    }
-                    else
-                    {
-                        throw new Exception("Get web data failed");
-                    }
-                }
-                foreach (var item in songs)
-                {
-                    foreach (var p in webSongInfos)
-                    {
-                        if (p.Title.ToLower().Equals(item.TrackName.ToLower()))
+                        var response = client.GetAsync(route).GetAwaiter().GetResult();
+                        if (response.IsSuccessStatusCode)
                         {
-                            var rawString = p.upload_file;
-                            string url = "http://1.53.252.34:13000/" + rawString.Substring(rawString.IndexOf("hg_wmg"));
-                            item.Duration = GetFileDurarion(url);
+                            var jsonResponse = response.Content.ReadAsStringAsync().Result;
+                            webSongInfos = Newtonsoft.Json.JsonConvert.DeserializeObject<WebResponse>(jsonResponse).Data;
+                        }
+                        else
+                        {
+                            throw new Exception("Get web data failed");
+                        }
+                        foreach (var item in songs)
+                        {
+                            foreach (var p in webSongInfos)
+                            {
+                                if (!string.IsNullOrEmpty(p.Code) && p.Code.ToLower().Equals(item.Code.ToLower()))
+                                {
+                                    var rawString = p.upload_file;
+                                    string url = "http://118.69.82.99:13000/" + rawString.Substring(rawString.IndexOf("hg_wmg"));
+                                    item.Duration = GetFileDurarion(url);
+                                }
+                            }
                         }
                     }
+                    catch
+                    {
+                        var response = client.GetAsync(route2).GetAwaiter().GetResult();
+                        if (response.IsSuccessStatusCode)
+                        {
+                            var jsonResponse = response.Content.ReadAsStringAsync().Result;
+                            webSongInfos = Newtonsoft.Json.JsonConvert.DeserializeObject<WebResponse>(jsonResponse).Data;
+                        }
+                        else
+                        {
+                            throw new Exception("Get web data failed");
+                        }
+                        foreach (var item in songs)
+                        {
+                            foreach (var p in webSongInfos)
+                            {
+                                if (!string.IsNullOrEmpty(p.Code) && p.Code.ToLower().Equals(item.Code.ToLower()))
+                                {
+                                    var rawString = p.upload_file;
+                                    string url = "http://1.53.252.34:13000/" + rawString.Substring(rawString.IndexOf("hg_wmg"));
+                                    item.Duration = GetFileDurarion(url);
+                                }
+                            }
+                        }
+                    }
+
                 }
+
                 return songs;
             }
             catch
@@ -58,6 +89,7 @@ namespace GenerateWMGTracklist
             }
             catch(Exception ex)
             {
+                Console.WriteLine(ex.Message);
                 return default(int);
             }
 
@@ -109,11 +141,11 @@ namespace GenerateWMGTracklist
                     Directory.CreateDirectory(directory);
                 }
                 string file = Path.Combine(directory, @$"info_{fileName}.txt");
-                File.AppendAllText(file, "STT" + "\t" + "Tên bài hát" + "\t" + "Code" + "\r\n");
+                File.AppendAllText(file, "STT" + "\t" + "Tên bài hát" + "\t" + "Code" + "\t" + "Nghệ Sỹ" + "\r\n");
                 var index = 1;
                 foreach (var song in songs)
                 {
-                    File.AppendAllText(file, $"{index}" + "\t" + song.TrackName.Trim() + "\t" + song.Code.Trim() + "\r\n");
+                    File.AppendAllText(file, $"{index}" + "\t" + song.TrackName.Trim() + "\t" + song.Code.Trim() + "\t" + song.TrackArtist.Trim() + "\r\n");
                     index++;
                 }
 

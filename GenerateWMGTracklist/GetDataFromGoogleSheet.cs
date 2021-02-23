@@ -15,10 +15,11 @@ namespace GenerateWMGTracklist
     public static class GetDataFromGoogleSheet
     {
         static string[] Scopes = { SheetsService.Scope.SpreadsheetsReadonly };
-        static string ApplicationName = "Statistic WMG";
-        static string spreadsheetId = "1XsrVqD-Fz1ggj2VX6wEbpt_FO0qguTMJR5YWnytYXV4";
-        static string range = "Sheet1";
+        static string ApplicationName = "Lọc nhạc - WMG (IT)";
+        static string spreadsheetId = "1fwHPiN_TuL99Spk0t9qnX0ry26pZaDgGHGX3OtcYwwk";
+        static string range = "Lọc nhạc";
         static string fileNameResult = "all_songs.txt";
+        static string otherValue = "Other";
 
         private static ValueRange GetDataByColumnFromGoogleSheet()
         {
@@ -42,8 +43,7 @@ namespace GenerateWMGTracklist
                 }
                 var service = new SheetsService(new BaseClientService.Initializer()
                 {
-                    HttpClientInitializer = credential,
-                    ApplicationName = ApplicationName,
+                    HttpClientInitializer = credential
                 });
                 SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum valueRenderOption = (SpreadsheetsResource.ValuesResource.GetRequest.ValueRenderOptionEnum)0;  // TODO: Update placeholder value.
                 SpreadsheetsResource.ValuesResource.GetRequest.DateTimeRenderOptionEnum dateTimeRenderOption = (SpreadsheetsResource.ValuesResource.GetRequest.DateTimeRenderOptionEnum)0;  // TODO: Update placeholder value.
@@ -75,99 +75,159 @@ namespace GenerateWMGTracklist
                     {
                         if (j == 1)
                         {
-                            song.TrackName = values[i][j].ToString();
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.TrackName = values[i][j].ToString();
+                            }
+
                         }
                         if (j == 2)
                         {
-                            song.TrackId = values[i][j].ToString();
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.Code = values[i][j].ToString();
+                            }
                         }
                         if (j == 3)
                         {
-                            song.AlbumId = values[i][j].ToString();
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.TrackArtist = values[i][j].ToString();
+                            }
                         }
                         if (j == 4)
                         {
-                            song.Code = values[i][j].ToString();
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.LinkSpotify = values[i][j].ToString();
+                                song.TrackId = values[i][j].ToString().Split(new string[] { "=" }, StringSplitOptions.None)[1].Split(new string[] { ":" }, StringSplitOptions.None)[2];
+                                song.AlbumId = values[i][j].ToString().Split(new string[] { "?" }, StringSplitOptions.None)[0].Split(new string[] { "https://open.spotify.com/album/" }, StringSplitOptions.None)[1];
+                            }
                         }
-                        if (j == 5)
-                        {
-                            song.TrackArtist = values[i][j].ToString();
-                        }
+                        //if (j == 5)
+                        //{
+                        //    if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                        //    {
+                        //        song.Genres = values[i][j].ToString();
+                        //    }
+                        //}
                         if (j == 6)
                         {
-                            song.Genres = values[i][j].ToString();
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.Region = values[i][j].ToString();
+                            }
                         }
                         if (j == 7)
                         {
-                            song.Region = values[i][j].ToString();
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.ReleaseYear = values[i][j].ToString();
+                            }
                         }
                         if (j == 8)
                         {
-                            song.ReleaseYear = values[i][j].ToString();
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.Popularity = int.Parse(values[i][j].ToString());
+                            }
                         }
                         if (j == 9)
                         {
-                            song.SpotifyStreamCountFirst = long.Parse(values[i][j].ToString());
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.SpotifyStreamCountFirst = long.Parse(values[i][j].ToString());
+                            }
+
                         }
-                        if (values[i].Count > 10)
+                        if(j == 10)
                         {
-                            if (j == values[i].Count - 1)
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
                             {
-                                song.SpotifyStreamCountSecond = long.Parse(values[i][values[i].Count - 1].ToString());
-                            }
-                            if(j== values[i].Count - 2)
-                            {
-                                song.SpotifyStreamCountFirst = long.Parse(values[i][values[i].Count - 2].ToString());
-                                
+                                song.Claim = true;
                             }
                         }
+                        if (j == 11)
+                        {
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.Expired = true;
+                            }
+                        }
+                        if (j == 12 || j == 13)
+                        {
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.Genres += values[i][j].ToString() + ";";
+                            }
+                        }
+                        if (j == 14)
+                        {
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.Mood = values[i][j].ToString();
+                            }
+                        }
+                        if (j == 15)
+                        {
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.ArtistRange = values[i][j].ToString();
+                            }
+                        }
+                        if(j == 17)
+                        {
+                            if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                            {
+                                song.ReleaseSong = values[i][j].ToString();
+                            }
+                        }
+                        //if (values[i].Count > 10)
+                        //{
+                        //    if (j == values[i].Count - 1)
+                        //    {
+                        //        if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                        //        {
+                        //            song.SpotifyStreamCountSecond = long.Parse(values[i][values[j].Count - 1].ToString());
+                        //        }
+
+                        //    }
+                        //    if(j== values[i].Count - 2)
+                        //    {
+                        //        if (!string.IsNullOrEmpty(values[i][j].ToString()))
+                        //        {
+                        //            song.SpotifyStreamCountFirst = long.Parse(values[i][values[j].Count - 2].ToString());
+                        //        }                               
+                        //    }
+                        //}
                     }
                     songs.Add(song);
                 }
-                string[] text = File.ReadAllLines("ExceptionSongs.txt");
-                if(text.Length > 0)
-                {
-                    var listExceptionSongs = new List<string>();
-                    foreach (var item in text)
-                    {
-                        if (!string.IsNullOrEmpty(item))
-                        {
-                            listExceptionSongs.Add(item);
-                        }
-                    }
-                    var newSongs = new List<Song>();
-                    newSongs.AddRange(songs);
-                    foreach (var item in newSongs)
-                    {
-                        foreach (var i in listExceptionSongs)
-                        {
-                            if (i.ToLower().Equals(item.Code.ToLower()))
-                            {
-                                songs.Remove(item);
-                            }
-                        }
-                    }
-                }
                 var list = songs.GroupBy(x => x.Code).Select(g => g.First()).ToList();
+                list = list.Where(item => item.Claim == false && item.Expired == false).ToList();
                 var lines = new List<string>();
-                    foreach (var song in list)
-                    {
-                        lines.Add(song.TrackName + "\t"
-                            + song.TrackId + "\t"
-                            + song.AlbumId + "\t"
-                            + song.Code + "\t"
-                            + song.TrackArtist + "\t"
-                            + song.Genres + "\t"
-                            + song.Region + "\t"
-                            + song.ReleaseYear + "\t"
-                            +song.SpotifyStreamCountFirst + "\t"
-                            + song.SpotifyStreamCountSecond);
-                    }
+                foreach (var song in list)
+                {
+                    lines.Add(song.TrackName + "\t"
+                        + song.Code + "\t"
+                        + song.TrackArtist + "\t"
+                        + song.LinkSpotify + "\t"
+                        + song.Genres + "\t"
+                        + song.Region + "\t"
+                        + song.ReleaseYear + "\t"
+                        + song.Popularity + "\t"
+                        + song.SpotifyStreamCountFirst + "\t"
+                        + song.Claim.ToString() + "\t"
+                        + song.Expired.ToString() + "\t"
+                        + song.Mood + "\t"
+                        + song.ArtistRange + "\t"
+                        + song.ReleaseSong);
+                }
                 if (File.Exists(fileNameResult))
                 {
                     File.Delete(fileNameResult);
                 }
-                File.AppendAllLines(fileNameResult, lines);                           
+                File.AppendAllLines(fileNameResult, lines);
             }
             catch (Exception ex)
             {
@@ -187,15 +247,20 @@ namespace GenerateWMGTracklist
                     songs.Add(new Song
                     {
                         TrackName = parts[0],
-                        TrackId = parts[1],
-                        AlbumId = parts[2],
-                        Code = parts[3],
-                        TrackArtist = parts[4],
-                        Genres = parts[5],
-                        Region = parts[6],
-                        ReleaseYear = parts[7],
+                        Code = parts[1],
+                        TrackArtist = parts[2],
+                        LinkSpotify = parts[3],
+                        Genres = parts[4],
+                        Region = parts[5],
+                        ReleaseYear = parts[6],
+                        Popularity = int.Parse(parts[7]),
                         SpotifyStreamCountFirst = long.Parse(parts[8]),
-                        SpotifyStreamCountSecond = long.Parse(parts[9]),
+                        Claim = bool.Parse(parts[9]),
+                        Expired = bool.Parse(parts[10]),
+                        Mood = parts[11],
+                        ArtistRange = parts[12],
+                        ReleaseSong = parts[13]
+                        
                     });
                 }
                 return songs;
@@ -211,29 +276,18 @@ namespace GenerateWMGTracklist
             try
             {
                 List<string> listGenre = new List<string>();
-                List<string> listGenreMigrate = new List<string>();
                 var songs = GetSongFromTextFile();
                 foreach(var song in songs)
                 {
-                    string[] lines = song.Genres.ToString().Split(new string[] { ";" }, StringSplitOptions.None);
+                    string[] lines = song.Genres.ToString().Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach(var item in lines)
                     {
-                        listGenre.Add(item);
-                    }
-                }
-                for (int i = 0; i < listGenre.Count; i++)
-                {
-                    if (!string.IsNullOrEmpty(listGenre[i]))
-                    {
-                        string existItem = listGenreMigrate.Any(item => item.Equals(listGenre[i])).ToString();
-                        if (!existItem.Equals("True"))
-                        {
-                            listGenreMigrate.Add(listGenre[i]);
-                        }
-                    }
-                }
-                return listGenreMigrate;
 
+                        listGenre.Add(item.Trim());
+
+                    }
+                }
+                return listGenre.Distinct().ToList();
             }
             catch (Exception ex)
             {
@@ -245,28 +299,18 @@ namespace GenerateWMGTracklist
             try
             {
                 List<string> listRegion = new List<string>();
-                List<string> listRegionMigrate = new List<string>();
                 var songs = GetSongFromTextFile();
                 foreach (var song in songs)
                 {
-                    string[] lines = song.Region.ToString().Split(new string[] { ";" }, StringSplitOptions.None);
+                    string[] lines = song.Region.ToString().Split(new string[] { ";" }, StringSplitOptions.RemoveEmptyEntries);
                     foreach (var item in lines)
                     {
-                        listRegion.Add(item);
+
+                        listRegion.Add(item.Trim());
+
                     }
                 }
-                for (int i = 0; i < listRegion.Count; i++)
-                {
-                    if (!string.IsNullOrEmpty(listRegion[i]))
-                    {
-                        string existItem = listRegionMigrate.Any(item => item.Equals(listRegion[i])).ToString();
-                        if (!existItem.Equals("True"))
-                        {
-                            listRegionMigrate.Add(listRegion[i]);
-                        }
-                    }
-                }
-                return listRegionMigrate;
+                return listRegion.Distinct().ToList();
 
             }
             catch (Exception ex)
@@ -279,25 +323,17 @@ namespace GenerateWMGTracklist
             try
             {
                 List<string> listYear = new List<string>();
-                List<string> listYearMigrate = new List<string>();
                 var songs = GetSongFromTextFile();
                 foreach (var song in songs)
                 {
-                    listYear.Add(song.ReleaseYear.ToString());
+                    if (!string.IsNullOrEmpty(song.ReleaseYear))
+                    {
+                        listYear.Add(song.ReleaseYear.ToString());
+                    }
+
 
                 }
-                for (int i = 0; i < listYear.Count; i++)
-                {
-                    if (!string.IsNullOrEmpty(listYear[i]))
-                    {
-                        string existItem = listYearMigrate.Any(item => item.Equals(listYear[i])).ToString();
-                        if (!existItem.Equals("True"))
-                        {
-                            listYearMigrate.Add(listYear[i]);
-                        }
-                    }
-                }
-                return listYearMigrate;
+                return listYear.Distinct().ToList();
 
             }
             catch (Exception ex)
@@ -310,24 +346,104 @@ namespace GenerateWMGTracklist
             try
             {
                 List<string> listArtist = new List<string>();
-                List<string> listArtistMigrate = new List<string>();
                 var songs = GetSongFromTextFile();
                 foreach (var song in songs)
                 {
-                  listArtist.Add(song.TrackArtist);
-                }
-                for (int i = 0; i < listArtist.Count; i++)
-                {
-                    if (!string.IsNullOrEmpty(listArtist[i]))
+                    if (!string.IsNullOrEmpty(song.TrackArtist))
                     {
-                        string existItem = listArtistMigrate.Any(item => item.Equals(listArtist[i])).ToString();
-                        if (!existItem.Equals("True"))
-                        {
-                            listArtistMigrate.Add(listArtist[i]);
-                        }
+                        listArtist.Add(song.TrackArtist);
                     }
+
                 }
-                return listArtistMigrate;
+                return listArtist.Distinct().ToList();
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        public static List<string> GetPopularity()
+        {
+            try
+            {
+                List<string> listPopularity = new List<string>();
+                var songs = GetSongFromTextFile();
+                foreach (var song in songs)
+                {
+                    if (!string.IsNullOrEmpty(song.Popularity.ToString()))
+                    {
+                        listPopularity.Add(song.Popularity.ToString());
+                    }
+
+                }
+                return listPopularity.Distinct().ToList();
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        public static List<string> GetArtistRange()
+        {
+            try
+            {
+                var songs = GetSongFromTextFile();
+                var listResult = new List<string>();
+                foreach (var song in songs)
+                {
+                    if (!string.IsNullOrEmpty(song.ArtistRange))
+                    {
+                        listResult.Add(song.ArtistRange);
+                    }
+
+                }
+                return listResult.Distinct().ToList();
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        public static List<string> GetReleaseSongs()
+        {
+            try
+            {
+                var songs = GetSongFromTextFile();
+                var listResult = new List<string>();
+                foreach (var song in songs)
+                {
+                    if (!string.IsNullOrEmpty(song.ReleaseSong))
+                    {
+                        listResult.Add(song.ReleaseSong);
+                    }
+
+                }
+                return listResult.Distinct().ToList();
+
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+        public static List<string> GetMood()
+        {
+            try
+            {
+                var songs = GetSongFromTextFile();
+                var listResult = new List<string>();
+                foreach (var song in songs)
+                {
+                    if (!string.IsNullOrEmpty(song.Mood))
+                    {
+                        listResult.Add(song.Mood);
+                    }
+
+                }
+                return listResult.Distinct().ToList();
 
             }
             catch (Exception ex)

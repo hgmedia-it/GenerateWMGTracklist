@@ -18,6 +18,13 @@ namespace GenerateWMGTracklist
         public string Region { get; set; }
         public double Point { get; set; }
         public int Duration { get; set; }
+        public string LinkSpotify { get; set; }
+        public int Popularity { get; set; }
+        public bool Claim { get; set; }
+        public bool Expired { get; set; }
+        public string Mood { get; set; }
+        public string ArtistRange { get; set; }
+        public string ReleaseSong { get; set; }
     }
     public enum Region
     {

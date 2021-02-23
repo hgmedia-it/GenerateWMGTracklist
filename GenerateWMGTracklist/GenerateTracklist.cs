@@ -15,13 +15,13 @@ namespace GenerateWMGTracklist
         static double rateTop1 = 0.5;
         static double rateTop2 = 0.35;
         static double rateTop3 = 0.15;
-        static int top1SongNumber = 5;
-        static int top2SongNumber = 10;
-        static int top3SongNumber = 5;
+        //static int top1SongNumber = 5;
+        //static int top2SongNumber = 10;
+        //static int top3SongNumber = 5;
         static int totalSong = 20;
         static List<string> GenreTop1 = GetGenreRateBySongsNumber(min: 60);
         static List<string> GenreTop2 = GetGenreRateBySongsNumber(max: 60, min: 10);
-        public static List<Song> GetListSongAfterFilter(List<string> artirst, List<string> genre, List<string> region, List<string> year, List<Song> listAllSongs)
+        public static List<Song> GetListSongAfterFilter(List<string> artirst, List<string> genre, List<string> region, List<string> year, List<string> popularity,List<string> releaseSong,List<Song> listAllSongs)
         {
             try
             {
@@ -41,16 +41,25 @@ namespace GenerateWMGTracklist
                 {
                     year = new List<string>();
                 }
+                if (popularity.Contains("All"))
+                {
+                    popularity = new List<string>();
+                }
+                if (releaseSong.Contains("All"))
+                {
+                    releaseSong = new List<string>();
+                }
                 List<Song> listSong = new List<Song>();
-                if (artirst.Count == 0 && genre.Count == 0 && region.Count == 0 && year.Count == 0)
+                if (artirst.Count == 0 && genre.Count == 0 && region.Count == 0 && year.Count == 0 && popularity.Count == 0 && releaseSong.Count == 0)
                 {
                     return listAllSongs;
                 }
 
                 foreach (var song in listAllSongs)
                 {
-                    if ((artirst.Count == 0 || artirst.Any(item => song.TrackArtist.Contains(item))) && (genre.Count == 0 || genre.Any(item => song.Genres.Contains(item)))
-                        && (region.Count == 0 || region.Any(item => song.Region.Contains(item))) && (year.Count == 0 || year.Any(item => song.ReleaseYear.Contains(item))))
+                    if ((artirst.Count == 0 || artirst.Any(item => song.TrackArtist.Equals(item.Trim()))) && CheckGenreCondition(genre,song)
+                        && CheckRegionCondition(region,song) && (year.Count == 0 || year.Any(item => song.ReleaseYear.Equals(item.Trim())))
+                        && (popularity.Count == 0 || popularity.Any(item => song.Popularity.ToString().Equals(item.Trim()))) && (releaseSong.Count == 0 || releaseSong.Any(item => song.ReleaseSong.Equals(item.Trim()))))
                     {
                         listSong.Add(song);
                     }
@@ -266,12 +275,12 @@ namespace GenerateWMGTracklist
                 return 0;
             }
         }
-        public static List<Song> GetSongForTracklistByRate(List<Song> songs)
+        public static List<Song> GetSongForTracklistByRate(List<Song> songs, int totalSong, int top1, int top2, int top3)
         {
             try
             {
                 List<Song> listSongFinal = new List<Song>();
-                if (songs.Count == 20)
+                if (songs.Count == totalSong)
                 {
                     return songs;
                 }
@@ -284,10 +293,10 @@ namespace GenerateWMGTracklist
                     }
                     else if(keyValuePairs.Count == 2)
                     {
-                        if(keyValuePairs.First().Value >= top1SongNumber)
+                        if(keyValuePairs.First().Value >= top1)
                         {
                             var randomSong = songs.Where(p => p.Point == keyValuePairs.First().Key).ToList();
-                            listSongFinal.AddRange(randomSong.OrderBy(arg => Guid.NewGuid()).Take(top1SongNumber).ToList());
+                            listSongFinal.AddRange(randomSong.OrderBy(arg => Guid.NewGuid()).Take(top1).ToList());
                         }
                         else
                         {
@@ -301,24 +310,24 @@ namespace GenerateWMGTracklist
                             {
                                 randomSong.Add(songs[i]);
                             }
-                            listSongFinal.AddRange(randomSong.OrderBy(arg => Guid.NewGuid()).Take(top1SongNumber-count).ToList());
+                            listSongFinal.AddRange(randomSong.OrderBy(arg => Guid.NewGuid()).Take(top1-count).ToList());
                         }
                     }
                     else
                     {
-                        if (keyValuePairs.First().Value >= top1SongNumber)
+                        if (keyValuePairs.First().Value >= top1)
                         {
                             var randomSongTop1 = songs.Where(p => p.Point == keyValuePairs.First().Key).ToList();
-                            listSongFinal.AddRange(randomSongTop1.OrderBy(arg => Guid.NewGuid()).Take(top1SongNumber).ToList());
+                            listSongFinal.AddRange(randomSongTop1.OrderBy(arg => Guid.NewGuid()).Take(top1).ToList());
                             var randomSongTop2 = songs.Where(p => p.Point != keyValuePairs.First().Key).ToList();
-                            listSongFinal.AddRange(randomSongTop2.OrderBy(arg => Guid.NewGuid()).Take(top2SongNumber + top3SongNumber).ToList());
+                            listSongFinal.AddRange(randomSongTop2.OrderBy(arg => Guid.NewGuid()).Take(top2 + top3).ToList());
                         }
                         else
                         {
                             var songTop1 = songs.Where(p => p.Point == keyValuePairs.First().Key).ToList();
                             listSongFinal.AddRange(songTop1);
                             var songTop2 = songs.Where(p => p.Point != keyValuePairs.First().Key).ToList();
-                            listSongFinal.AddRange(songTop2.OrderBy(arg => Guid.NewGuid()).Take(top2SongNumber + top3SongNumber + (top1SongNumber - songTop1.Count)).ToList());
+                            listSongFinal.AddRange(songTop2.OrderBy(arg => Guid.NewGuid()).Take(top2 + top3 + (top1 - songTop1.Count)).ToList());
                         }
                     }
                     return listSongFinal;
@@ -364,5 +373,248 @@ namespace GenerateWMGTracklist
                 return null;
             }
         }
+
+
+        public static List<Song> GetSongByPopularityPoint(List<Song> songAfterFilter, int totalSong, int top1, int top2, int top3)
+        {
+            try
+            {
+                List<Song> listSongFinal = new List<Song>();
+                if (songAfterFilter.Count == totalSong)
+                {
+                    return songAfterFilter;
+                }
+                else
+                {
+                    songAfterFilter = songAfterFilter.OrderBy(x=> x.Popularity).ToList();
+                    var listSongTop1 = songAfterFilter.Where(x => x.Popularity >= 70).ToList();
+                    if(listSongTop1.Count == 0)
+                    {
+                        var listSongTop2 = songAfterFilter.Where(x => x.Popularity < 70 && x.Popularity >=40).ToList();
+                        if(listSongTop2.Count == 0)
+                        {
+                            listSongFinal.AddRange(songAfterFilter.OrderBy(arg => Guid.NewGuid()).Take(totalSong).ToList());
+                        }else if(listSongTop2 .Count > 0 && listSongTop2.Count < (top1 + top2))
+                        {
+                            listSongFinal.AddRange(listSongTop2);
+                            foreach(var item in listSongFinal)
+                            {
+                                songAfterFilter.Remove(item);
+                            }
+                            listSongFinal.AddRange(songAfterFilter.OrderBy(arg => Guid.NewGuid()).Take(top3 + (top1 + top2 - listSongTop2.Count)).ToList());
+                        }
+                        else
+                        {
+                            var listSongTop3 = songAfterFilter.Where(x => x.Popularity < 40).ToList();
+                            if(listSongTop3.Count == 0)
+                            {
+                                listSongFinal.AddRange(listSongTop2.OrderBy(arg => Guid.NewGuid()).Take(totalSong).ToList());
+                            }else if(listSongTop3.Count > 0 && listSongTop3.Count < top3)
+                            {
+                                listSongFinal.AddRange(listSongTop2.OrderBy(arg => Guid.NewGuid()).Take(top1 + top2 + (top3 - listSongTop3.Count)).ToList());
+                                listSongFinal.AddRange(listSongTop3);
+                            }
+                            else
+                            {
+                                listSongFinal.AddRange(listSongTop2.OrderBy(arg => Guid.NewGuid()).Take(top1 + top2).ToList());
+                                listSongFinal.AddRange(listSongTop3.OrderBy(arg => Guid.NewGuid()).Take(top3).ToList());
+                            }
+                        }
+                    }
+                    else if(listSongTop1.Count > 0 && listSongTop1.Count < top1)
+                    {                     
+                        var listSongTop2 = songAfterFilter.Where(x => x.Popularity < 70 && x.Popularity >=40).ToList();
+                        if(listSongTop2.Count  == 0)
+                        {
+                            listSongFinal.AddRange(listSongTop1);
+                            foreach(var item in listSongFinal)
+                            {
+                                songAfterFilter.Remove(item);
+                            }
+                            listSongFinal.AddRange(songAfterFilter.OrderBy(arg => Guid.NewGuid()).Take(totalSong - listSongTop1.Count).ToList());
+                        }else if(listSongTop2.Count > 0 && listSongTop2.Count < top2)
+                        {
+                            listSongFinal.AddRange(listSongTop1);
+                            listSongFinal.AddRange(listSongTop2);
+                            foreach(var item in listSongFinal)
+                            {
+                                songAfterFilter.Remove(item);
+                            }
+                            listSongFinal.AddRange(songAfterFilter.OrderBy(arg => Guid.NewGuid()).Take(totalSong - listSongTop1.Count - listSongTop2.Count));
+                        }
+                        else
+                        {
+                            var listSongTop3 = songAfterFilter.Where(x => x.Popularity < 40).ToList();
+                            if(listSongTop3.Count == 0)
+                            {
+                                listSongFinal.AddRange(listSongTop1);
+                                listSongFinal.AddRange(listSongTop2.OrderBy(arg => Guid.NewGuid()).Take(totalSong - listSongTop1.Count).ToList());
+                            }else if(listSongTop3.Count > 0 && listSongTop3.Count < top3)
+                            {
+                                listSongFinal.AddRange(listSongTop1);
+                                listSongFinal.AddRange(listSongTop2.OrderBy(arg => Guid.NewGuid()).Take(top2 + (top3 - listSongTop3.Count)));
+                                listSongFinal.AddRange(listSongTop3);
+                            }
+                            else
+                            {
+                                listSongFinal.AddRange(listSongTop1);
+                                listSongFinal.AddRange(listSongTop2.OrderBy(arg => Guid.NewGuid()).Take(top2));
+                                listSongFinal.AddRange(listSongTop3.OrderBy(arg => Guid.NewGuid()).Take(top3));
+                            }
+                        }
+                    }
+                    else
+                    {                        
+                        var listSongTop2 = songAfterFilter.Where(x =>  x.Popularity< 70 && x.Popularity >= 40).ToList();
+                        if (listSongTop2.Count == 0)
+                        {
+                            var listSongTop3  = songAfterFilter.Where(x => x.Popularity < 40).ToList();
+                            if(listSongTop3.Count == 0)
+                            {
+                                listSongFinal.AddRange(listSongTop1.OrderBy(arg => Guid.NewGuid()).Take(totalSong).ToList());
+                            }else if(listSongTop3.Count > 0 && listSongTop3.Count < (top3 + top2))
+                            {
+                                listSongFinal.AddRange(listSongTop1.OrderBy(arg => Guid.NewGuid()).Take(top1 + top2 + (top3 - listSongTop3.Count)).ToList());
+                                listSongFinal.AddRange(listSongTop3);
+                            }
+                            else
+                            {
+                                listSongFinal.AddRange(listSongTop1.OrderBy(arg => Guid.NewGuid()).Take(top1));
+                                listSongFinal.AddRange(listSongTop3.OrderBy(arg => Guid.NewGuid()).Take(top2 + top3).ToList());
+                            }
+                        }
+                        else if (listSongTop2.Count > 0 && listSongTop2.Count < top2)
+                        {
+                            var listSongTop3 = songAfterFilter.Where(x => x.Popularity < 40).ToList();
+                            if (listSongTop3.Count == 0)
+                            {
+                                listSongFinal.AddRange(listSongTop1.OrderBy(arg => Guid.NewGuid()).Take(top1 + top3 +(top2 - listSongTop2.Count)).ToList());
+                                listSongFinal.AddRange(listSongTop2);
+                            }
+                            else if (listSongTop3.Count > 0 && listSongTop3.Count < top3)
+                            {
+                                listSongFinal.AddRange(listSongTop1.OrderBy(arg => Guid.NewGuid()).Take(top1 + top2 + (top3 - listSongTop3.Count)).ToList());
+                                listSongFinal.AddRange(listSongTop3);
+                            }
+                            else
+                            {
+                                listSongFinal.AddRange(listSongTop1.OrderBy(arg => Guid.NewGuid()).Take(top1));
+                                listSongFinal.AddRange(listSongTop3.OrderBy(arg => Guid.NewGuid()).Take(top2 + top3).ToList());
+                            }
+                        }
+                        else
+                        {
+                            listSongFinal.AddRange(listSongTop1.OrderBy(arg => Guid.NewGuid()).Take(top1));
+                            listSongFinal.AddRange(listSongTop2.OrderBy(arg => Guid.NewGuid()).Take(top2));
+                            foreach(var item in listSongFinal)
+                            {
+                                songAfterFilter.Remove(item);
+                            }
+                            listSongFinal.AddRange(songAfterFilter.OrderBy(arg => Guid.NewGuid()).Take(top3).ToList());
+                        }
+                    }
+                }
+                return listSongFinal;
+
+            }
+            catch(Exception ex)
+            {
+                return null;
+            }
+        }
+        public static bool CheckRegionCondition(List<string> listString, Song song)
+        {
+            try
+            {
+                if(listString.Count == 0)
+                {
+                    return true;
+                }
+                else
+                {
+
+                    if (listString.Any(item=> item.Equals("")))
+                    {
+                        if (song.Region.Equals(""))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            var list = new List<string>();
+                            list.AddRange(listString);
+                            list.Remove("");
+                            if(list.Any(item => song.Region.Contains(item)))
+                            {
+                                return true;
+                            }
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        var list = new List<string>();
+                        list.AddRange(listString);
+                        list.Remove("");
+                        if (list.Any(item => song.Region.Contains(item)))
+                        {
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        public static bool CheckGenreCondition(List<string> listString,Song song)
+        {
+            try
+            {
+                if (listString.Count == 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    if (listString.Any(item => item.Equals("")))
+                    {
+                        if (song.Genres.Equals(""))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            var list = new List<string>();
+                            list.AddRange(listString);
+                            list.Remove("");
+                            if (list.Any(item => song.Genres.Contains(item)))
+                            {
+                                return true;
+                            }
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        var list = new List<string>();
+                        list.AddRange(listString);
+                        list.Remove("");
+                        if (list.Any(item => song.Genres.Contains(item)))
+                        {
+                            return true;
+                        }
+                        return false;
+                    }
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
+        
     }
 }
